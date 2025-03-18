@@ -1,158 +1,208 @@
 <script>
+	import { createEventDispatcher, onDestroy } from 'svelte'
+	import { profile } from '../config/profile.js'
+	import { dictionaries, words } from '../config/dictionary.js'
+	import Button from '../components/Button.svelte'
+	import { clickedUp } from '../config/audio.js'
 
-    import {createEventDispatcher, onDestroy} from "svelte";
-    import {getProfile} from "../config/profile.js";
-    import {dictionaries, words} from "../config/dictionary.js";
-    import Button from "../components/Button.svelte";
-    import {clickedUp} from "../config/audio.js";
+	const dispatcher = createEventDispatcher()
 
-    const dispatcher = createEventDispatcher();
+	//total kuis perhari
 
-    const getWordIndex = () => {
-        const min = Math.ceil(startIndex);
-        const max = Math.floor(index - 1);
-        const randomInt = Math.floor(Math.random() * (max - min + 1)) + min;
-        if (dictionaries[words[randomInt]].examples) {
-            return randomInt;
-        }
+	export let index
+	let questionIndex = 0
+	let totalQuestions = 10
+	let answers = []
+	let score = 0
+	const usedQuestions = new Set() // Menyimpan indeks soal yang sudah muncul
 
-        return getWordIndex();
-    }
-    const shuffleArray = (arr) => {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    }
-    export let index;
+	const getWordIndex = () => {
+		if (usedQuestions.size >= totalQuestions) return -1 // Cegah infinite loop
 
-    const profile = getProfile();
-    const todayLearnedWord = profile.reports[new Date().toDateString()].words.length;
-    const startIndex = index - todayLearnedWord;
+		let randomInt
+		do {
+			const min = Math.ceil(startIndex)
+			const max = Math.floor(index - 1)
+			randomInt = Math.floor(Math.random() * (max - min + 1)) + min
+		} while (
+			usedQuestions.has(randomInt) ||
+			!dictionaries[words[randomInt]].examples
+		)
 
-    const wordIndex = getWordIndex();
-    const word = words[wordIndex];
-    const dictionary = dictionaries[word];
+		usedQuestions.add(randomInt) // Tandai soal sebagai sudah digunakan
+		console.log({ getWordIndex: randomInt })
+		return randomInt
+	}
 
-    const getRandomWord = () => {
-        const min = Math.ceil(0);
-        const max = Math.floor(index);
-        const randomInt = Math.floor(Math.random() * (max - min + 1)) + min;
+	const shuffleArray = (arr) => {
+		for (let i = arr.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1))
+			;[arr[i], arr[j]] = [arr[j], arr[i]]
+		}
+		return arr
+	}
 
-        if (randomInt === wordIndex) {
-            return getRandomWord();
-        }
+	const todayLearnedWord =
+		$profile.reports[new Date().toDateString()].words.length
+	const startIndex = index - todayLearnedWord
 
-        return words[randomInt];
-    };
+	let wordIndex = getWordIndex()
+	let word = words[wordIndex]
+	let dictionary = dictionaries[word]
 
-    const choices = new Array(3).fill(null).map((_) => getRandomWord());
-    choices.push(words[wordIndex]);
-    const shuffledChoices = shuffleArray(choices);
+	const getRandomWord = () => {
+		const min = Math.ceil(0)
+		const max = Math.floor(index)
+		const randomInt = Math.floor(Math.random() * (max - min + 1)) + min
 
-    let question = dictionary.examples[0];
+		if (randomInt === wordIndex) {
+			return getRandomWord()
+		}
 
+		console.log({ getRandomWord: words[randomInt] })
+		return words[randomInt]
+	}
 
-    if (profile.words.length === words.length) {
-        dispatcher('finish');
-    }
+	const generateChoices = () => {
+		const choices = new Array(3).fill(null).map(() => getRandomWord())
+		choices.push(words[wordIndex])
+		return shuffleArray(choices)
+	}
 
-    const maxCounter = 60;
-    let counter = maxCounter;
+	let choices = generateChoices()
+	let question = dictionary.examples[0]
 
-    const interval = setInterval(() => {
-        clickedUp.load();
-        clickedUp.play().then(() => {
-            counter--;
+	if ($profile.words.length === words.length) {
+		dispatcher('finish')
+	}
 
-            if (counter <= 0) {
-                clearInterval(interval);
-                location.href = '#timeout';
-            }
-        });
-    }, 1000);
+	const maxCounter = 60
+	let counter = maxCounter
+	let interval
 
-    const submit = (w) => {
-        clearInterval(interval);
-        if (w === word) {
-            const score = Math.ceil(counter / 60 * 100);
-            dispatcher('quiz', {score})
-        } else {
-            dispatcher('quiz', {score: -1});
-        }
-    };
+	const startTimer = () => {
+		clearInterval(interval)
+		counter = maxCounter
+		interval = setInterval(() => {
+			clickedUp.load()
+			clickedUp.play().then(() => {
+				counter--
+				if (counter <= 0) {
+					clearInterval(interval)
+					location.href = '#timeout'
+				}
+			})
+		}, 1000)
+	}
 
-    onDestroy(() => clearInterval(interval));
+	startTimer()
+
+	const nextQuestion = () => {
+		if (questionIndex < totalQuestions - 1) {
+			questionIndex++
+			wordIndex = getWordIndex()
+			if (wordIndex === -1)
+				return dispatcher('quiz', {
+					score: answers.filter(Boolean).length * 10,
+				})
+
+			word = words[wordIndex]
+			dictionary = dictionaries[word]
+			choices = generateChoices()
+			question = dictionary.examples[0]
+			startTimer()
+		} else {
+			dispatcher('quiz', { score }) // Kirim score setelah 10 soal
+		}
+	}
+
+	const submit = (w) => {
+		clearInterval(interval)
+		answers.push(w === word)
+
+		if (questionIndex < totalQuestions - 1) {
+			nextQuestion()
+		} else {
+			const score = answers.filter(Boolean).length * 10
+			dispatcher('quiz', { score }) // Kirim score terakhir
+		}
+	}
+
+	onDestroy(() => clearInterval(interval))
 </script>
 
 <div class="container">
-    <h1>KUIS</h1>
-    <h2>{counter.toString().padStart(2, '0')}</h2>
-    <p class="instruction">Lengkapi kalimat berikut:</p>
-    <p class="question">"{question.banjar.replace(word, '___')}"</p>
-    <p class="hint">{question.indonesia}</p>
+	<h1>KUIS</h1>
+	<h2>{counter.toString().padStart(2, '0')}</h2>
+	<p class="instruction">Lengkapi kalimat berikut:</p>
+	<p class="question">
+		{questionIndex + 1}. "{question.banjar.replace(word, '___')}"
+	</p>
+	<p class="hint">{question.indonesia}</p>
 
-    <div class="answer-wrapper">
-        <div class="answers">
-            {#each shuffledChoices as choice}
-                <Button on:click={() => submit(choice)} class="fixed-size background-purple orange">{choice}</Button>
-            {/each}
-        </div>
-    </div>
+	<div class="answer-wrapper">
+		<div class="answers">
+			{#each choices as choice}
+				<Button
+					on:click={() => submit(choice)}
+					class="fixed-size background-purple orange">{choice}</Button
+				>
+			{/each}
+		</div>
+	</div>
 </div>
 
 <style>
-    .container {
-        margin: 0 25px;
-        padding-top: 88px;
-    }
+	.container {
+		margin: 0 25px;
+		padding-top: 88px;
+	}
 
-    .instruction {
-        margin-bottom: 0;
-        font-size: 0.85em;
-    }
+	.instruction {
+		margin-bottom: 0;
+		font-size: 0.85em;
+	}
 
-    .question {
-        margin-top: 5px;
-        margin-bottom: 0;
-        font-size: 1.5em;
-        font-style: italic;
-        font-weight: bold;
-    }
+	.question {
+		margin-top: 5px;
+		margin-bottom: 0;
+		font-size: 1.5em;
+		font-style: italic;
+		font-weight: bold;
+	}
 
-    .hint {
-        margin-top: 5px;
-        font-weight: bold;
-    }
+	.hint {
+		margin-top: 5px;
+		font-weight: bold;
+	}
 
-    .answers {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        grid-auto-rows: minmax(10px, auto);
-    }
+	.answers {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 20px;
+		grid-auto-rows: minmax(10px, auto);
+	}
 
-    .answer-wrapper {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 50px;
-    }
+	.answer-wrapper {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-top: 50px;
+	}
 
-    h1 {
-        margin-bottom: 0;
-    }
+	h1 {
+		margin-bottom: 0;
+	}
 
-    @media (max-width: 480px) {
-        .container {
-            margin-bottom: 85px;
-            padding-top: 25px;
-        }
+	@media (max-width: 480px) {
+		.container {
+			margin-bottom: 85px;
+			padding-top: 25px;
+		}
 
-        .answers {
-            gap: 10px;
-        }
-    }
+		.answers {
+			gap: 10px;
+		}
+	}
 </style>
