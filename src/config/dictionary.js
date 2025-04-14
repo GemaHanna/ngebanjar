@@ -1,6 +1,6 @@
 export const dictionaries = {
 	ulun: {
-		translation: ['(Bahasa Halus) saya, hamba'],
+		translation: ['Bahasa Halus : saya, hamba'],
 		examples: [
 			{
 				banjar: 'ulun lapar',
@@ -131,7 +131,7 @@ export const dictionaries = {
 		],
 	},
 	sagan: {
-		translation: ['(Bahasa Halus) untuk'],
+		translation: ['Bahasa Halus : untuk'],
 		examples: [
 			{
 				banjar: 'sagan siapa?',
@@ -149,7 +149,7 @@ export const dictionaries = {
 		],
 	},
 	mapa: {
-		translation: ['(Bahasa Halus) bagaimana'],
+		translation: ['Bahasa Halus : bagaimana'],
 		examples: [
 			{
 				banjar: 'mapalah?',
@@ -158,7 +158,7 @@ export const dictionaries = {
 		],
 	},
 	kanapang: {
-		translation: ['(Bahasa Halus) kenapa'],
+		translation: ['Bahasa Halus : kenapa'],
 		examples: [
 			{
 				banjar: 'kanapang ikam nih?',
@@ -198,7 +198,7 @@ export const dictionaries = {
 		],
 	},
 	kesah: {
-		translation: ['(Bahasa Kasar) kisah, cerita'],
+		translation: ['Bahasa Kasar : kisah, cerita'],
 		others: {
 			bakesah: 'bercerita',
 			mangesahakan: 'mengisahkan',
@@ -212,7 +212,7 @@ export const dictionaries = {
 		],
 	},
 	unda: {
-		translation: ['(Bahasa Kasar) saya, aku'],
+		translation: ['Bahasa Kasar : saya, aku'],
 		others: {
 			baundaan: 'memindahkan barang sedikit demi sedikit',
 		},
@@ -241,7 +241,7 @@ export const dictionaries = {
 		],
 	},
 	kijil: {
-		translation: ['(Bahasa Kasar) genit'],
+		translation: ['Bahasa Kasar : genit'],
 		examples: [
 			{
 				banjar: 'inya babinian kijil',
@@ -263,7 +263,7 @@ export const dictionaries = {
 		],
 	},
 	hakon: {
-		translation: ['(Bahasa Kasar) bersedia, mau'],
+		translation: ['Bahasa Kasar : bersedia, mau'],
 		others: {
 			bahakonan: 'pilih-pilihan',
 			mahakonakan: 'menyatakan bersedia, menyatakan mau',
@@ -308,7 +308,7 @@ export const dictionaries = {
 		],
 	},
 	sasengot: {
-		translation: ['(Bahasa Kasar) kumis'],
+		translation: ['Bahasa Kasar : kumis'],
 		examples: [
 			{
 				banjar: 'sasengot sidin kandal nangkaya muha ikam',
