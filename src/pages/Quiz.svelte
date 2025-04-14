@@ -16,6 +16,7 @@
 	let score = 0
 	const usedQuestions = new Set() // Menyimpan indeks soal yang sudah muncul
 
+	//fungsi pengacakan soal
 	const getWordIndex = () => {
 		if (usedQuestions.size >= totalQuestions) return -1 // Cegah infinite loop
 
@@ -34,6 +35,7 @@
 		return randomInt
 	}
 
+	// Fungsi agar tidak urut 
 	const shuffleArray = (arr) => {
 		for (let i = arr.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1))
@@ -76,6 +78,7 @@
 		dispatcher('finish')
 	}
 
+	//fungsi timer max 60s
 	const maxCounter = 60
 	let counter = maxCounter
 	let interval

@@ -7,10 +7,6 @@
 
 	const tips = [
 		{
-			title: '[Tips] Singkatan-singkatan',
-			content: '(BH) adalah Bahasa Halus, sedangkan (BK) adalah Bahasa Kasar',
-		},
-		{
 			title: '[Tips] Belajar Pengucapan',
 			content:
 				'Pada saat belajar, klik tombol kecil bergambar pengeras suara agar dapat mendengarkan cara pengucapannya',
